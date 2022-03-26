@@ -5,12 +5,12 @@ _base_ = [
 
 # dataset settings
 dataset_type = 'VideoDataset'
-data_root = '/home/tong/10708/course_project/mmaction2/'
-data_root_val = '/home/tong/10708/course_project/mmaction2/'
-data_root_test = '/home/tong/10708/course_project/mmaction2/'
-ann_file_train = 'data/kinetics_700_new/train_list_videos.txt'
-ann_file_val = 'data/kinetics_700_new/val_list_videos.txt'
-ann_file_test = 'data/kinetics_700_new/test_list_videos.txt'
+data_root = '/home/tong/10708/kinetics/'
+data_root_val = '/home/tong/10708/kinetics/'
+data_root_test = '/home/tong/10708/kinetics/'
+ann_file_train = '/home/tong/10708/kinetics/kinetics60/train_list_videos.txt'
+ann_file_val = '/home/tong/10708/kinetics/kinetics60/val_list_videos.txt'
+ann_file_test = '/home/tong/10708/kinetics/kinetics60/test_list_videos.txt'
 
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_bgr=False)
