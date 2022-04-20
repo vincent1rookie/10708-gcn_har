@@ -8,11 +8,14 @@ import shutil
 import string
 import warnings
 from collections import defaultdict
-
+import random
 import cv2
 import mmcv
 import numpy as np
 from tqdm import tqdm
+
+random.seed(10708)
+
 try:
     from mmdet.apis import inference_detector, init_detector
     from mmpose.apis import inference_top_down_pose_model, init_pose_model
@@ -40,33 +43,30 @@ def gen_id(size=8):
 
 
 def extract_frame(video_path):
-    dname = gen_id()
-    os.makedirs(dname, exist_ok=True)
-    frame_tmpl = osp.join(dname, 'img_{:05d}.jpg')
     vid = cv2.VideoCapture(video_path)
-    frame_paths = []
     flag, frame = vid.read()
     cnt = 0
+    frame_list = [frame, ]
     while flag:
-        frame_path = frame_tmpl.format(cnt + 1)
-        frame_paths.append(frame_path)
-
-        cv2.imwrite(frame_path, frame)
         cnt += 1
+        frame_list.append(frame)
         flag, frame = vid.read()
 
-    return frame_paths
+    if cnt > 30:
+        frame_list = random.choices(frame_list, k=30)
+
+    return frame_list
 
 
-def detection_inference(args, frame_paths):
+def detection_inference(args, frame_lists):
     model = init_detector(args.det_config, args.det_checkpoint, args.device)
     assert model.CLASSES[0] == 'person', ('We require you to use a detector '
                                           'trained on COCO')
     results = []
     print('Performing Human Detection for each frame')
-    prog_bar = mmcv.ProgressBar(len(frame_paths))
-    for frame_path in frame_paths:
-        result = inference_detector(model, frame_path)
+    prog_bar = mmcv.ProgressBar(len(frame_lists))
+    for frame_list in frame_lists:
+        result = inference_detector(model, frame_list)
         # We only keep human detections with score larger than det_score_thr
         result = result[0][result[0][:, 4] >= args.det_score_thr]
         results.append(result)
@@ -284,17 +284,16 @@ def ntu_det_postproc(vid, det_results):
         return bboxes2bbox(det_results, len(det_results))
 
 
-def pose_inference(args, frame_paths, det_results):
+def pose_inference(args, frame_lists, det_results):
     model = init_pose_model(args.pose_config, args.pose_checkpoint,
                             args.device)
     print('Performing Human Pose Estimation for each frame')
-    prog_bar = mmcv.ProgressBar(len(frame_paths))
-
+    prog_bar = mmcv.ProgressBar(len(frame_lists))
     num_frame = len(det_results)
     num_person = max([len(x) for x in det_results])
     kp = np.zeros((num_person, num_frame, 17, 3), dtype=np.float32)
     features = None
-    for i, (f, d) in enumerate(zip(frame_paths, det_results)):
+    for i, (f, d) in enumerate(zip(frame_lists, det_results)):
         # Align input format
         d = [dict(bbox=x) for x in list(d) if x[-1] > 0.5]
         res = inference_top_down_pose_model(model, f, d, outputs=[args.feature], format='xyxy')
@@ -306,7 +305,7 @@ def pose_inference(args, frame_paths, det_results):
         if features is None and feature is not None:
             features = np.zeros([num_person, num_frame, 17] + list(feature.shape[2: ]), dtype=np.float32) # In case we want to use features of other dimensions
         if feature is not None:
-            for j, (item, f )in enumerate(zip(pose, feature)):
+            for j, (item, f) in enumerate(zip(pose, feature)):
                 kp[j, i] = item['keypoints']
                 features[j, i] = f
         else:
@@ -317,11 +316,11 @@ def pose_inference(args, frame_paths, det_results):
 
 
 def ntu_pose_extraction(vid, skip_postproc=False):
-    frame_paths = extract_frame(vid)
-    det_results = detection_inference(args, frame_paths)
+    frame_lists = extract_frame(vid)
+    det_results = detection_inference(args, frame_lists)
     if not skip_postproc:
         det_results = ntu_det_postproc(vid, det_results)
-    pose_results, features = pose_inference(args, frame_paths, det_results)
+    pose_results, features = pose_inference(args, frame_lists, det_results)
     anno = dict()
     anno['keypoint'] = pose_results[..., :2]
     anno['keypoint_score'] = pose_results[..., 2]
@@ -331,7 +330,7 @@ def ntu_pose_extraction(vid, skip_postproc=False):
     anno['total_frames'] = pose_results.shape[1]
     anno['label'] = osp.basename(vid).split('.')[1]
     anno['features'] = features
-    shutil.rmtree(osp.dirname(frame_paths[0]))
+    # shutil.rmtree(osp.dirname(frame_lists[0]))
 
     return anno
 
