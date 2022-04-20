@@ -318,8 +318,8 @@ def pose_inference(args, frame_lists, det_results):
 def ntu_pose_extraction(vid, skip_postproc=False):
     frame_lists = extract_frame(vid)
     det_results = detection_inference(args, frame_lists)
-    if not skip_postproc:
-        det_results = ntu_det_postproc(vid, det_results)
+    # if not skip_postproc:
+    #     det_results = ntu_det_postproc(vid, det_results)
     pose_results, features = pose_inference(args, frame_lists, det_results)
     anno = dict()
     anno['keypoint'] = pose_results[..., :2]
