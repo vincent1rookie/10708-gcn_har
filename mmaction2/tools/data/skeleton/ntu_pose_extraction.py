@@ -43,6 +43,7 @@ def gen_id(size=8):
 
 
 def extract_frame(video_path):
+    random_ids = []
     vid = cv2.VideoCapture(video_path)
     flag, frame = vid.read()
     cnt = 0
@@ -51,11 +52,11 @@ def extract_frame(video_path):
         cnt += 1
         frame_list.append(frame)
         flag, frame = vid.read()
-
     if cnt > 30:
-        frame_list = random.choices(frame_list, k=30)
+        random_ids = sorted(random.sample(list(range(len(frame_list))), k=30))
+        frame_list = [frame_list[i] for i in random_ids]
 
-    return frame_list
+    return frame_list, random_ids
 
 
 def detection_inference(args, frame_lists):
@@ -67,7 +68,7 @@ def detection_inference(args, frame_lists):
     prog_bar = mmcv.ProgressBar(len(frame_lists))
     for frame_list in frame_lists:
         result = inference_detector(model, frame_list)
-        # We only keep human detections with score larger than det_score_thr
+        # TODO: add code for object detection here, also output some global features
         result = result[0][result[0][:, 4] >= args.det_score_thr]
         results.append(result)
         prog_bar.update()
@@ -316,7 +317,7 @@ def pose_inference(args, frame_lists, det_results):
 
 
 def ntu_pose_extraction(vid, skip_postproc=False):
-    frame_lists = extract_frame(vid)
+    frame_lists, random_ids = extract_frame(vid)
     det_results = detection_inference(args, frame_lists)
     # if not skip_postproc:
     #     det_results = ntu_det_postproc(vid, det_results)
@@ -330,7 +331,7 @@ def ntu_pose_extraction(vid, skip_postproc=False):
     anno['total_frames'] = pose_results.shape[1]
     anno['label'] = osp.basename(vid).split('.')[1]
     anno['features'] = features
-    # shutil.rmtree(osp.dirname(frame_lists[0]))
+    anno['frame_ids'] = random_ids
 
     return anno
 
@@ -363,8 +364,9 @@ if __name__ == '__main__':
                 output = os.path.join(global_args.out_dir, filename.replace(".mp4", ".pkl"))
                 vid_list.append((video, output))
     vid_list.sort()
-    for video, output in tqdm(vid_list):
+    for video, output in tqdm(vid_list[:10]):
         args.video = video
         args.output = output
         anno = ntu_pose_extraction(args.video, args.skip_postproc)
         mmcv.dump(anno, args.output)
+        print(video)

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="SshConfigs">
-    <configs>
-      <sshConfig host="3.137.60.169" id="b08719f0-e01a-4454-8564-6a16c0b53bcd" keyPath="$USER_HOME$/.ssh/22spring.pem" port="22" nameFormat="DESCRIPTIVE" username="ubuntu" />
-    </configs>
-  </component>
-</project>
