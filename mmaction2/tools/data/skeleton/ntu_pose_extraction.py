@@ -55,7 +55,7 @@ def extract_frame(video_path):
     if cnt > 30:
         random_ids = sorted(random.sample(list(range(len(frame_list))), k=30))
         frame_list = [frame_list[i] for i in random_ids]
-
+    pdb.set_trace()
     return frame_list, random_ids
 
 
@@ -326,8 +326,8 @@ def ntu_pose_extraction(vid, skip_postproc=False):
     anno['keypoint'] = pose_results[..., :2]
     anno['keypoint_score'] = pose_results[..., 2]
     anno['frame_dir'] = osp.splitext(osp.basename(vid))[0]
-    anno['img_shape'] = (1080, 1920)
-    anno['original_shape'] = (1080, 1920)
+    anno['img_shape'] = frame_lists[0].shape[:2]
+    anno['original_shape'] = frame_lists[0].shape[:2]
     anno['total_frames'] = pose_results.shape[1]
     anno['label'] = osp.basename(vid).split('.')[1]
     anno['features'] = features
