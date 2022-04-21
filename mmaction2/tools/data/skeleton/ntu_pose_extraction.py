@@ -55,7 +55,6 @@ def extract_frame(video_path):
     if cnt > 30:
         random_ids = sorted(random.sample(list(range(len(frame_list))), k=30))
         frame_list = [frame_list[i] for i in random_ids]
-    pdb.set_trace()
     return frame_list, random_ids
 
 
