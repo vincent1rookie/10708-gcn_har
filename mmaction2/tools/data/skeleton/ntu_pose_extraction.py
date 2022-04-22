@@ -361,11 +361,12 @@ if __name__ == '__main__':
             for filename in os.listdir(abs_dir_name):
                 video = os.path.join(abs_dir_name,filename)
                 output = os.path.join(global_args.out_dir, filename.replace(".mp4", ".pkl"))
-                vid_list.append((video, output))
+                vid_list.append((video, output, dir_name))
     vid_list.sort()
-    for video, output in tqdm(vid_list[:10]):
+    for video, output, dir_name in tqdm(vid_list[:10]):
         args.video = video
         args.output = output
         anno = ntu_pose_extraction(args.video, args.skip_postproc)
+        anno['label'] = dir_name
         mmcv.dump(anno, args.output)
         print(video)
