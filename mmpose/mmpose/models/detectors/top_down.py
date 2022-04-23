@@ -3,6 +3,8 @@ import warnings
 
 import mmcv
 import numpy as np
+import pdb
+import torch
 from mmcv.image import imwrite
 from mmcv.utils.misc import deprecated_api_warning
 from mmcv.visualization.image import imshow
@@ -192,10 +194,20 @@ class TopDown(BasePose):
                 img_metas, output_heatmap, img_size=[img_width, img_height])
             result.update(keypoint_result)
 
-            if not return_heatmap:
-                output_heatmap = None
+            heatmap_shape = output_heatmap.shape
+            flattened_heatmap_idx = output_heatmap.reshape(heatmap_shape[0], heatmap_shape[1], -1).argmax(axis = 2)
+            heatmap_idx = np.unravel_index(flattened_heatmap_idx, (heatmap_shape[2], heatmap_shape[3]))
+            ft = np.array(features[0].cpu())
+
+            selected_features = np.zeros((heatmap_idx[0].shape[0], heatmap_idx[0].shape[1], ft.shape[1]))
+            for i in range(heatmap_idx[0].shape[0]):
+                selected_features[i, :, :] = ft[i, :, heatmap_idx[0][i], heatmap_idx[1][i]]
 
             result['output_heatmap'] = output_heatmap
+            result['selected_features'] = selected_features
+
+            if not return_heatmap:
+                output_heatmap = None
 
         return result
 

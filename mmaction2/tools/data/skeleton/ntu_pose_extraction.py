@@ -12,6 +12,7 @@ import random
 import cv2
 import mmcv
 import numpy as np
+import pdb
 from tqdm import tqdm
 
 random.seed(10708)
@@ -292,12 +293,18 @@ def pose_inference(args, frame_lists, det_results):
     num_frame = len(det_results)
     num_person = max([len(x) for x in det_results])
     kp = np.zeros((num_person, num_frame, 17, 3), dtype=np.float32)
+    returned_features = np.zeros((num_person, num_frame, 17, 32), dtype = np.float32)
     features = None
     for i, (f, d) in enumerate(zip(frame_lists, det_results)):
         # Align input format
         d = [dict(bbox=x) for x in list(d) if x[-1] > 0.5]
-        res = inference_top_down_pose_model(model, f, d, outputs=[args.feature], format='xyxy')
+        res = inference_top_down_pose_model(model, f, d, outputs=['backbone'], format='xyxy')
         pose = res[0]
+        if len(res) == 3:
+            rf = res[2]
+            for j in range(rf.shape[0]):
+                returned_features[j, i] = rf[j]
+
         if len(res) > 1 and len(res[1]) > 0 and isinstance(res[1][0], dict) and  res[1][0].get(args.feature) is not None:
             feature = res[1][0][args.feature] # shapes (8, 17, H, W), 8=len(d), ie, len(pose), 17=num of keypoints in each bbox
         else:
@@ -312,7 +319,7 @@ def pose_inference(args, frame_lists, det_results):
             for j, item in enumerate(pose):
                 kp[j, i] = item['keypoints']
         prog_bar.update()
-    return kp, features  # shapes (12, 173, 17, 3), 173=num of frames, 3 = (x, y, score), 17=num of keypoints in each bbox, 12=num_person
+    return kp, features, returned_features  # shapes (12, 173, 17, 3), 173=num of frames, 3 = (x, y, score), 17=num of keypoints in each bbox, 12=num_person
 
 
 def ntu_pose_extraction(vid, skip_postproc=False):
@@ -320,7 +327,7 @@ def ntu_pose_extraction(vid, skip_postproc=False):
     det_results = detection_inference(args, frame_lists)
     # if not skip_postproc:
     #     det_results = ntu_det_postproc(vid, det_results)
-    pose_results, features = pose_inference(args, frame_lists, det_results)
+    pose_results, features, returned_features = pose_inference(args, frame_lists, det_results)
     anno = dict()
     anno['keypoint'] = pose_results[..., :2]
     anno['keypoint_score'] = pose_results[..., 2]
@@ -331,6 +338,7 @@ def ntu_pose_extraction(vid, skip_postproc=False):
     anno['label'] = osp.basename(vid).split('.')[1]
     anno['features'] = features
     anno['frame_ids'] = random_ids
+    anno["returned_features"] = returned_features
 
     return anno
 
@@ -363,11 +371,11 @@ if __name__ == '__main__':
                 output = os.path.join(global_args.out_dir, filename.replace(".mp4", ".pkl"))
                 vid_list.append((video, output, dir_name, idx))
     vid_list.sort()
-    for video, output, dir_name, idx in tqdm(vid_list[:10]):
+    for video, output, dir_name, idx in tqdm(vid_list):
         args.video = video
         args.output = output
         anno = ntu_pose_extraction(args.video, args.skip_postproc)
         anno['label'] = idx
         anno['label_name'] = dir_name
-        mmcv.dump(anno, args.output)
+        mmcv.dump([anno], args.output)
         print(video)

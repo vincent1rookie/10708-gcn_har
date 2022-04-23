@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import os
 import warnings
-
+import pdb
 import mmcv
 import numpy as np
 import torch
@@ -14,6 +14,7 @@ from mmpose.datasets.dataset_info import DatasetInfo
 from mmpose.datasets.pipelines import Compose
 from mmpose.models import build_posenet
 from mmpose.utils.hooks import OutputHook
+import pdb
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 
@@ -289,7 +290,7 @@ def _inference_single_pose_model(model,
             return_loss=False,
             return_heatmap=return_heatmap)
 
-    return result['preds'], result['output_heatmap']
+    return result['preds'], result['output_heatmap'], result["selected_features"]
 
 
 def inference_top_down_pose_model(model,
@@ -397,7 +398,7 @@ def inference_top_down_pose_model(model,
 
     with OutputHook(model, outputs=outputs, as_tensor=False) as h:
         # poses is results['pred'] # N x 17x 3
-        poses, heatmap = _inference_single_pose_model(
+        poses, heatmap, features = _inference_single_pose_model(
             model,
             img_or_path,
             bboxes_xywh,
@@ -409,17 +410,17 @@ def inference_top_down_pose_model(model,
             h.layer_outputs['heatmap'] = heatmap
 
         returned_outputs.append(h.layer_outputs)
-
     assert len(poses) == len(person_results), print(
         len(poses), len(person_results), len(bboxes_xyxy))
     for pose, person_result, bbox_xyxy in zip(poses, person_results,
                                               bboxes_xyxy):
+
         pose_result = person_result.copy()
         pose_result['keypoints'] = pose
         pose_result['bbox'] = bbox_xyxy
         pose_results.append(pose_result)
 
-    return pose_results, returned_outputs
+    return pose_results, returned_outputs, features
 
 
 def inference_bottom_up_pose_model(model,
