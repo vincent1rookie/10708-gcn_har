@@ -69,7 +69,7 @@ class Graph:
         self.max_hop = max_hop
         self.dilation = dilation
 
-        assert layout in ['openpose', 'ntu-rgb+d', 'ntu_edge', 'coco']
+        assert layout in ['openpose', 'ntu-rgb+d', 'ntu_edge', 'coco','coco_gbl']
         assert strategy in ['uniform', 'distance', 'spatial', 'agcn']
         self.get_edge(layout)
         self.hop_dis = get_hop_distance(
@@ -122,6 +122,19 @@ class Graph:
                               [6, 12], [7, 13], [6, 7], [8, 6], [9, 7],
                               [10, 8], [11, 9], [2, 3], [2, 1], [3, 1], [4, 2],
                               [5, 3], [4, 6], [5, 7]]
+            neighbor_link = [(i - 1, j - 1) for (i, j) in neighbor_1base]
+            self.edge = self_link + neighbor_link
+            self.center = 0
+        elif layout == 'coco_gbl':
+            self.num_node = 18
+            self_link = [(i, i) for i in range(self.num_node)]
+            neighbor_1base = [[16, 14], [14, 12], [17, 15], [15, 13], [12, 13],
+                              [6, 12], [7, 13], [6, 7], [8, 6], [9, 7],
+                              [10, 8], [11, 9], [2, 3], [2, 1], [3, 1], [4, 2],
+                              [5, 3], [4, 6], [5, 7],
+                              [1,18], [2,18], [3,18], [4,18], [5,18], [6,18], [7,18],
+                              [8,18], [9,18], [10,18], [11,18], [12,18], [13,18],
+                              [14,18], [15,18], [16,18], [17,18]]
             neighbor_link = [(i - 1, j - 1) for (i, j) in neighbor_1base]
             self.edge = self_link + neighbor_link
             self.center = 0

@@ -92,22 +92,35 @@ class PoseDataset(BaseDataset):
 
     def load_annotations(self):
         """Load annotation file to get video information."""
-        assert self.ann_file.endswith('.pkl')
+        assert self.ann_file.endswith('.pkl') or self.ann_file.endswith('.json')
         return self.load_pkl_annotations()
 
     def load_pkl_annotations(self):
         data = mmcv.load(self.ann_file)
 
-        if self.split:
-            split, data = data['split'], data['annotations']
-            identifier = 'filename' if 'filename' in data[0] else 'frame_dir'
-            data = [x for x in data if x[identifier] in split[self.split]]
+        if self.ann_file.endswith('.pkl'):
+            if self.split:
+                split, data = data['split'], data['annotations']
+                identifier = 'filename' if 'filename' in data[0] else 'frame_dir'
+                data = [x for x in data if x[identifier] in split[self.split]]
 
-        for item in data:
-            # Sometimes we may need to load anno from the file
-            if 'filename' in item:
-                item['filename'] = osp.join(self.data_prefix, item['filename'])
-            if 'frame_dir' in item:
-                item['frame_dir'] = osp.join(self.data_prefix,
-                                             item['frame_dir'])
+            for item in data:
+                # Sometimes we may need to load anno from the file
+                if 'filename' in item:
+                    item['filename'] = osp.join(self.data_prefix, item['filename'])
+                if 'frame_dir' in item:
+                    item['frame_dir'] = osp.join(self.data_prefix,
+                                                item['frame_dir'])
+        else:
+            for item in data:
+                # Sometimes we may need to load anno from the file
+                if 'filename' in item:
+                    item['filename'] = osp.join(self.data_prefix, item['filename'])
+                if 'frame_dir' in item:
+                    item['frame_dir'] = osp.join(self.data_prefix,
+                                                item['frame_dir'])
+                # convert to np array
+                item['keypoint'] = np.array(item['keypoint'])
+                item['keypoint_score'] = np.array(item['keypoint_score'])
+                item['returned_features'] = np.array(item['returned_features'])
         return data

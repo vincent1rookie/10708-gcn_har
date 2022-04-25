@@ -445,12 +445,13 @@ class FormatGCNInput:
         input_format (str): Define the final skeleton format.
     """
 
-    def __init__(self, input_format, num_person=2):
+    def __init__(self, input_format, num_person=2, use_node_feature = False):
         self.input_format = input_format
         if self.input_format not in ['NCTVM']:
             raise ValueError(
                 f'The input format {self.input_format} is invalid.')
         self.num_person = num_person
+        self.use_node_feature = use_node_feature
 
     def __call__(self, results):
         """Performs the FormatShape formatting.
@@ -469,6 +470,15 @@ class FormatGCNInput:
         else:
             keypoint_3d = keypoint
 
+        
+
+        if self.use_node_feature and 'returned_features' in results:
+            kp_feature = results['returned_features']
+            if kp_feature.shape[0:3] != keypoint_3d.shape[0:3]:
+                print(kp_feature.shape, keypoint_3d.shape)
+            keypoint_3d = np.concatenate((keypoint_3d, kp_feature),
+                                         axis=-1)
+
         keypoint_3d = np.transpose(keypoint_3d,
                                    (3, 1, 2, 0))  # M T V C -> C T V M
 
@@ -478,6 +488,11 @@ class FormatGCNInput:
                 keypoint_3d.shape[:-1] + (pad_dim, ), dtype=keypoint_3d.dtype)
             keypoint_3d = np.concatenate((keypoint_3d, pad), axis=-1)
         elif keypoint_3d.shape[-1] > self.num_person:
+            # if 'keypoint_score' in results:
+            #     score_ranking = keypoint_confidence.sum(axis = (1,2,3))
+            #     idx_s = score_ranking.argsort()[:self.num_person]
+            #     keypoint_3d = keypoint_3d[:, :, :,idx_s]
+            # else:
             keypoint_3d = keypoint_3d[:, :, :, :self.num_person]
 
         results['keypoint'] = keypoint_3d

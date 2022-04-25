@@ -189,6 +189,10 @@ class PoseDecode:
             results['keypoint'] = results['keypoint'][:, frame_inds].astype(
                 np.float32)
 
+        if 'returned_features' in results:
+            results['returned_features'] = results['returned_features'][:, frame_inds].astype(
+                np.float32)
+
         return results
 
     def __repr__(self):
@@ -679,17 +683,38 @@ class PoseNormalize:
     def __init__(self,
                  mean=(960., 540., 0.5),
                  min_value=(0., 0., 0.),
-                 max_value=(1920, 1080, 1.)):
+                 max_value=(1920, 1080, 1.),
+                 dynamic=True):
         self.mean = np.array(mean, dtype=np.float32).reshape(-1, 1, 1, 1)
         self.min_value = np.array(
             min_value, dtype=np.float32).reshape(-1, 1, 1, 1)
         self.max_value = np.array(
             max_value, dtype=np.float32).reshape(-1, 1, 1, 1)
+        self.dynamic = dynamic
 
     def __call__(self, results):
+        if self.dynamic:
+            mean = (float(results['img_shape'][0]/2),
+                    float(results['img_shape'][1]/2),
+                    0.5)
+            min_value = (0., 0., 0.)
+            max_value = (float(results['img_shape'][0]),
+                        float(results['img_shape'][1]),
+                        1.)
+            self.mean = np.array(mean, dtype=np.float32).reshape(-1, 1, 1, 1)
+            self.min_value = np.array(
+                min_value, dtype=np.float32).reshape(-1, 1, 1, 1)
+            self.max_value = np.array(
+                max_value, dtype=np.float32).reshape(-1, 1, 1, 1)
         keypoint = results['keypoint']
-        keypoint = (keypoint - self.mean) / (self.max_value - self.min_value)
-        results['keypoint'] = keypoint
-        results['keypoint_norm_cfg'] = dict(
-            mean=self.mean, min_value=self.min_value, max_value=self.max_value)
+        if keypoint.shape[0] == 3:
+            keypoint = (keypoint - self.mean) / (self.max_value - self.min_value)
+            results['keypoint'] = keypoint
+            results['keypoint_norm_cfg'] = dict(
+                mean=self.mean, min_value=self.min_value, max_value=self.max_value)
+        else:
+            keypoint[0:3] = (keypoint[0:3] - self.mean) / (self.max_value - self.min_value)
+            results['keypoint'] = keypoint
+            results['keypoint_norm_cfg'] = dict(
+                mean=self.mean, min_value=self.min_value, max_value=self.max_value)
         return results
