@@ -203,22 +203,22 @@ def train_model(model,
     if validate:
         eval_cfg = cfg.get('evaluation', {})
         val_dataset = build_dataset(cfg.data.val, dict(test_mode=True))
-#         dataloader_setting = dict(
-#             videos_per_gpu=cfg.data.get('videos_per_gpu', 1),
-#             workers_per_gpu=cfg.data.get('workers_per_gpu', 1),
-#             persistent_workers=cfg.data.get('persistent_workers', False),
-#             # cfg.gpus will be ignored if distributed
-#             num_gpus=len(cfg.gpu_ids),
-#             dist=distributed,
-#             shuffle=False)
         dataloader_setting = dict(
             videos_per_gpu=cfg.data.get('videos_per_gpu', 1),
             workers_per_gpu=cfg.data.get('workers_per_gpu', 1),
             persistent_workers=cfg.data.get('persistent_workers', False),
             # cfg.gpus will be ignored if distributed
-            num_gpus=1,
-            dist=False,
+            num_gpus=len(cfg.gpu_ids),
+            dist=distributed,
             shuffle=False)
+#         dataloader_setting = dict(
+#             videos_per_gpu=cfg.data.get('videos_per_gpu', 1),
+#             workers_per_gpu=cfg.data.get('workers_per_gpu', 1),
+#             persistent_workers=cfg.data.get('persistent_workers', False),
+#             # cfg.gpus will be ignored if distributed
+#             num_gpus=1,
+#             dist=False,
+#             shuffle=False)
         dataloader_setting = dict(dataloader_setting,
                                   **cfg.data.get('val_dataloader', {}))
         val_dataloader = build_dataloader(val_dataset, **dataloader_setting)

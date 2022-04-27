@@ -1,4 +1,4 @@
-num_person=5
+num_person=2
 model = dict(
     type='SkeletonGCN',
     backbone=dict(
@@ -17,8 +17,8 @@ model = dict(
     test_cfg=None)
 
 dataset_type = 'PoseDataset'
-ann_file_train = '/home/tong/10708/skeleton_train/'
-ann_file_val = '/home/tong/10708/skeleton_new/'
+ann_file_train = '/home/tong/10708/skeleton_processed/skeleton_train_processed/'
+ann_file_val = '/home/tong/10708/skeleton_processed/skeleton_val_processed/'
 train_pipeline = [
     dict(type='PaddingWithLoop', clip_len=30),
     dict(type='PoseDecode'),
@@ -71,13 +71,13 @@ optimizer_config = dict(grad_clip=None)
 lr_config = dict(policy='step', step=[10, 40, 70])
 total_epochs = 80
 checkpoint_config = dict(interval=5)
-evaluation = dict(interval=5, metrics=['top_k_accuracy'])
+evaluation = dict(interval=2, metrics=['top_k_accuracy'])
 log_config = dict(interval=10, hooks=[dict(type='TextLoggerHook')])
 
 # runtime settings
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './stgcn_loc_3_modify_dataset/'
+work_dir = './stgcn_loc_2_corrected_dataset/'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

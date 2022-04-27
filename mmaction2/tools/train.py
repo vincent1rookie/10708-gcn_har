@@ -13,6 +13,12 @@ from mmcv import Config, DictAction
 from mmcv.runner import get_dist_info, init_dist, set_random_seed
 from mmcv.utils import get_git_hash
 
+# import subprocess
+# print('subprocess')
+# subprocess.run('pip install -v -e .', shell=True)
+# dist.barrier()
+# subprocess.run(['pip', 'install', '-v', '-e', '..'], capture_output=True)
+
 from mmaction import __version__
 from mmaction.apis import init_random_seed, train_model
 from mmaction.datasets import build_dataset
@@ -219,4 +225,11 @@ def main():
 
 
 if __name__ == '__main__':
+    # install mmaction at first 
+    print('install mmaction at first ')
+    
+    # subprocess.run('pip install -v -e .', shell=True)
+#     from pip._internal import main as pipmain
+
+#     pipmain(['install', '-v', '-e', '.'])
     main()
