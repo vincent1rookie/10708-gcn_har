@@ -1,4 +1,4 @@
-num_person=2
+num_person=5
 model = dict(
     type='SkeletonGCN',
     backbone=dict(
@@ -17,8 +17,8 @@ model = dict(
     test_cfg=None)
 
 dataset_type = 'PoseDataset'
-ann_file_train = '/home/ubuntu/code/mmaction2/tools/data/skeleton/mini_train.json'
-ann_file_val = '/home/ubuntu/code/mmaction2/tools/data/skeleton/mini_test.json'
+ann_file_train = '/home/tong/10708/skeleton_train/'
+ann_file_val = '/home/tong/10708/skeleton_new/'
 train_pipeline = [
     dict(type='PaddingWithLoop', clip_len=30),
     dict(type='PoseDecode'),
@@ -44,9 +44,10 @@ test_pipeline = [
     dict(type='ToTensor', keys=['keypoint'])
 ]
 data = dict(
-    videos_per_gpu=64,
-    workers_per_gpu=2,
-    test_dataloader=dict(videos_per_gpu=1),
+    videos_per_gpu=48,
+    workers_per_gpu=4,
+    val_dataloader=dict(shuffle=False),
+    test_dataloader=dict(videos_per_gpu=4),
     train=dict(
         type=dataset_type,
         ann_file=ann_file_train,
@@ -71,12 +72,12 @@ lr_config = dict(policy='step', step=[10, 40, 70])
 total_epochs = 80
 checkpoint_config = dict(interval=5)
 evaluation = dict(interval=5, metrics=['top_k_accuracy'])
-log_config = dict(interval=100, hooks=[dict(type='TextLoggerHook')])
+log_config = dict(interval=10, hooks=[dict(type='TextLoggerHook')])
 
 # runtime settings
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = '/home/ubuntu/test_run'
+work_dir = './stgcn_loc_3_modify_dataset/'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

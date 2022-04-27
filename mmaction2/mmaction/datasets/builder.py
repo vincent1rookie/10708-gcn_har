@@ -12,6 +12,7 @@ from torch.utils.data import DataLoader
 
 from ..utils.multigrid import ShortCycleSampler
 from .samplers import ClassSpecificDistributedSampler, DistributedSampler
+from torch.utils.data.sampler import SequentialSampler
 
 if platform.system() != 'Windows':
     # https://github.com/pytorch/pytorch/issues/973
@@ -132,6 +133,7 @@ def build_dataloader(dataset,
             raise NotImplementedError(
                 'Short cycle using non-dist is not supported')
 
+        # sampler = SequentialSampler(dataset)
         sampler = None
         batch_size = num_gpus * videos_per_gpu
         num_workers = num_gpus * workers_per_gpu

@@ -3,7 +3,6 @@ import os.path as osp
 
 import mmcv
 import numpy as np
-import glob
 
 from ..utils import get_root_logger
 from .base import BaseDataset
@@ -93,11 +92,8 @@ class PoseDataset(BaseDataset):
 
     def load_annotations(self):
         """Load annotation file to get video information."""
-        # assert self.ann_file.endswith('.pkl') or self.ann_file.endswith('.json')
-        # return self.load_pkl_annotations()
-        annotation_list = glob.glob(self.ann_file + '/*.pkl')
-        print('dataset length: ', len(annotation_list))
-        return annotation_list 
+        assert self.ann_file.endswith('.pkl') or self.ann_file.endswith('.json')
+        return self.load_pkl_annotations()
 
     def load_pkl_annotations(self):
         data = mmcv.load(self.ann_file)
@@ -128,18 +124,3 @@ class PoseDataset(BaseDataset):
                 item['keypoint_score'] = np.array(item['keypoint_score'])
                 item['returned_features'] = np.array(item['returned_features'])
         return data
-    
-    def __getitem__(self, idx):
-        
-        item = mmcv.load(self.video_infos[idx])[0]
-        if 'filename' in item:
-            item['filename'] = osp.join(self.data_prefix, item['filename'])
-        if 'frame_dir' in item:
-            item['frame_dir'] = osp.join(self.data_prefix,
-                                                item['frame_dir'])
-        # convert to np array
-        item['keypoint'] = np.array(item['keypoint'])
-        item['keypoint_score'] = np.array(item['keypoint_score'])
-        item['returned_features'] = np.array(item['returned_features'])
-        
-        return self.pipeline(item)

@@ -187,7 +187,12 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
                 raise KeyError(f'metric {metric} is not supported')
 
         eval_results = OrderedDict()
-        gt_labels = [ann['label'] for ann in self.video_infos]
+        # gt_labels = [ann['label'] for ann in self.video_infos]
+        gt_labels = []
+        for ann in self.video_infos:
+            
+            ann_per_video = mmcv.load(ann)[0]
+            gt_labels.append(ann_per_video['label'])
 
         for metric in metrics:
             msg = f'Evaluating {metric} ...'
