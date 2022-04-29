@@ -69,14 +69,14 @@ optimizer_config = dict(grad_clip=None)
 # learning policy
 lr_config = dict(policy='step', step=[10, 40, 70])
 total_epochs = 80
-checkpoint_config = dict(interval=5)
+checkpoint_config = dict(interval=5, create_symlink=False)
 evaluation = dict(interval=5, metrics=['top_k_accuracy'])
 log_config = dict(interval=10, hooks=[dict(type='TextLoggerHook')])
 
 # runtime settings
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './stgcn_test_modify_dataset/'
+# work_dir = './stgcn_test_modify_dataset/'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

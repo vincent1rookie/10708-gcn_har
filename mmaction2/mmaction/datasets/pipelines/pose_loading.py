@@ -121,6 +121,7 @@ class UniformSampleFrames:
 
         inds = np.mod(inds, num_frames)
         start_index = results['start_index']
+        # start_index = 0
         inds = inds + start_index
 
         results['frame_inds'] = inds.astype(np.int)

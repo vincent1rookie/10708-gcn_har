@@ -24,7 +24,7 @@ class ResNet3dSlowOnly(ResNet3dPathway):
         inflate (Sequence[int]): Inflate Dims of each block.
             Default: (0, 0, 1, 1).
         **kwargs (keyword arguments): Keywords arguments for
-            :class:`ResNet3dPathway`.
+            : class:`ResNet3dPathway`.
     """
 
     def __init__(self,

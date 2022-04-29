@@ -92,29 +92,36 @@ def main():
 
     data_root = args.dataroot
     # cfg.data_root_val = cfg.data_root
-    ann_file_train = data_root + '/kinetics60/train_list_videos.txt'
-    ann_file_val = data_root + '/kinetics60/val_list_videos.txt'
-    ann_file_test = data_root + '/kinetics60/test_list_videos.txt'
-
+    ann_file_train = data_root + '/skeleton_processed/skeleton_train_processed/'
+    ann_file_val = data_root + '/skeleton_processed/skeleton_val_processed/'
+    ann_file_test = data_root + '/skeleton_processed/skeleton_val_processed/'
+    # data_root = '/home/tong/10708/kinetics/kinetics60/'
+    video_path_files = ['./train_list.txt', './val_list.txt']
     data = dict(
-    videos_per_gpu=8,
-    workers_per_gpu=2,
-    test_dataloader=dict(videos_per_gpu=1),
+    videos_per_gpu=16,
+    workers_per_gpu=4,
+    test_dataloader=dict(videos_per_gpu=4),
     train=dict(
-        type=cfg.dataset_type,
-        ann_file=ann_file_train,
-        data_prefix=data_root,
-        pipeline=cfg.train_pipeline),
+            type=cfg.dataset_type,
+            ann_file=ann_file_train,
+            data_prefix='',
+            pipeline=cfg.train_pipeline,
+            data_root=data_root + '/kinetics60/',
+            video_path_files=video_path_files),
     val=dict(
         type=cfg.dataset_type,
         ann_file=ann_file_val,
-        data_prefix=data_root,
-        pipeline=cfg.val_pipeline),
+        data_prefix='',
+        pipeline=cfg.val_pipeline,
+        data_root=data_root + '/kinetics60/',
+        video_path_files=video_path_files),
     test=dict(
         type=cfg.dataset_type,
-        ann_file=ann_file_test,
-        data_prefix=data_root,
-        pipeline=cfg.test_pipeline))
+        ann_file=ann_file_val,
+        data_prefix='',
+        pipeline=cfg.test_pipeline,
+        data_root=data_root + '/kinetics60/',
+        video_path_files=video_path_files))
 
     cfg.data_root = data_root
     cfg.ann_file_train = ann_file_train
@@ -122,7 +129,6 @@ def main():
     cfg.ann_file_test = ann_file_test
 
     cfg.data = data
-
 
     # set multi-process settings
     setup_multi_processes(cfg)

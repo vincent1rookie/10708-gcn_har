@@ -227,7 +227,7 @@ def train_model(model,
         runner.register_hook(eval_hook)
 
     if cfg.resume_from:
-        runner.resume(cfg.resume_from)
+        runner.resume(cfg.resume_from) 
     elif cfg.load_from:
         runner.load_checkpoint(cfg.load_from)
     runner_kwargs = dict()

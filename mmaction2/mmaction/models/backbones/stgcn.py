@@ -215,13 +215,13 @@ class STGCN(nn.Module):
             STGCNBlock(
                 in_channels, 64, kernel_size, 1, residual=False, **kwargs0),
             STGCNBlock(64, 64, kernel_size, 1, **kwargs),
-            STGCNBlock(64, 64, kernel_size, 1, **kwargs),
+            # STGCNBlock(64, 64, kernel_size, 1, **kwargs),
             STGCNBlock(64, 64, kernel_size, 1, **kwargs),
             STGCNBlock(64, 128, kernel_size, 2, **kwargs),
-            STGCNBlock(128, 128, kernel_size, 1, **kwargs),
+            # STGCNBlock(128, 128, kernel_size, 1, **kwargs),
             STGCNBlock(128, 128, kernel_size, 1, **kwargs),
             STGCNBlock(128, 256, kernel_size, 2, **kwargs),
-            STGCNBlock(256, 256, kernel_size, 1, **kwargs),
+            # STGCNBlock(256, 256, kernel_size, 1, **kwargs),
             STGCNBlock(256, 256, kernel_size, 1, **kwargs),
         ))
 

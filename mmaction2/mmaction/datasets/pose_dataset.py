@@ -48,6 +48,8 @@ class PoseDataset(BaseDataset):
                  valid_ratio=None,
                  box_thr=None,
                  class_prob=None,
+                 video_path_files=None,
+                 data_root='',
                  **kwargs):
         modality = 'Pose'
         # split, applicable to ucf or hmdb
@@ -90,6 +92,22 @@ class PoseDataset(BaseDataset):
 
         logger = get_root_logger()
         logger.info(f'{len(self)} videos remain after valid thresholding')
+        self.video_full_path = {}
+        self.data_root = data_root
+        if video_path_files is not None:
+            
+            video_lines = []
+            for video_path_file in video_path_files:
+                with open(video_path_file) as file:
+                    lines = file.readlines()
+                video_lines.extend(lines)
+
+            video_paths = [ll.rsplit(' ', 1)[0].split('/', 1)[1] for ll in video_lines]
+            video_names = [ll.rsplit('/', 1)[1].split('.')[0] for ll in video_paths]
+            print(video_paths[:10])
+            print(video_names[:10])
+            for ii, _ in enumerate(video_names):
+                self.video_full_path[video_names[ii]] = video_paths[ii]
 
     def load_annotations(self):
         """Load annotation file to get video information."""
@@ -141,5 +159,7 @@ class PoseDataset(BaseDataset):
         item['keypoint'] = np.array(item['keypoint'])
         item['keypoint_score'] = np.array(item['keypoint_score'])
         item['returned_features'] = np.array(item['returned_features'])
-        
+        item['frame_dir'] = self.data_root + '/' + self.video_full_path[item['frame_dir']]
+        item['modality'] = 'Pose'
+        item['start_index'] = 0
         return self.pipeline(item)

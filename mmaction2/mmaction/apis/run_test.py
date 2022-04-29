@@ -165,10 +165,10 @@ def test_model(model,
     print("dataloader_setting: ", dataloader_setting)
     val_dataloader = build_dataloader(val_dataset, **dataloader_setting)
     
-    # cfg.resume_from = '/home/tong/10708/gcn/10708-gcn_har/mmaction2/stgcn_loc_5_modify_dataset/epoch_80.pth'
-    checkpoint_files = sorted(glob.glob(cfg.resume_from + '/epoch_*.pth'))
-    validation_results = []
-    for ckpt in checkpoint_files:
+    cfg.resume_from = '/home/tong/10708/gcn/10708-gcn_har/mmaction2/stgcn_loc_5_modify_dataset/epoch_80.pth'
+    # checkpoint_files = sorted(glob.glob(cfg.resume_from + '/epoch_*.pth'))
+    # validation_results = []
+    # for ckpt in checkpoint_files:
         runner.resume(ckpt)
 #     if cfg.resume_from:
 #         runner.resume(cfg.resume_from)

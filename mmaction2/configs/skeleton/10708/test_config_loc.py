@@ -1,4 +1,4 @@
-num_person=2
+num_person=5
 model = dict(
     type='SkeletonGCN',
     backbone=dict(
@@ -23,7 +23,7 @@ train_pipeline = [
     dict(type='PaddingWithLoop', clip_len=30),
     dict(type='PoseDecode'),
     dict(type='FormatGCNInput',num_person=num_person, input_format='NCTVM', use_node_feature=True),
-    dict(type='PoseNormalize'),
+    # dict(type='PoseNormalize'),
     dict(type='Collect', keys=['keypoint', 'label'], meta_keys=[]),
     dict(type='ToTensor', keys=['keypoint'])
 ]
@@ -31,7 +31,7 @@ val_pipeline = [
     dict(type='PaddingWithLoop', clip_len=30),
     dict(type='PoseDecode'),
     dict(type='FormatGCNInput',num_person=num_person, input_format='NCTVM', use_node_feature=True),
-    dict(type='PoseNormalize'),
+    # dict(type='PoseNormalize'),
     dict(type='Collect', keys=['keypoint', 'label'], meta_keys=[]),
     dict(type='ToTensor', keys=['keypoint'])
 ]
@@ -39,7 +39,7 @@ test_pipeline = [
     dict(type='PaddingWithLoop', clip_len=30),
     dict(type='PoseDecode'),
     dict(type='FormatGCNInput',num_person=num_person, input_format='NCTVM', use_node_feature=True),
-    dict(type='PoseNormalize'),
+    # dict(type='PoseNormalize'),
     dict(type='Collect', keys=['keypoint', 'label'], meta_keys=[]),
     dict(type='ToTensor', keys=['keypoint'])
 ]
@@ -70,14 +70,14 @@ optimizer_config = dict(grad_clip=None)
 # learning policy
 lr_config = dict(policy='step', step=[10, 40, 70])
 total_epochs = 80
-checkpoint_config = dict(interval=5)
-evaluation = dict(interval=2, metrics=['top_k_accuracy'])
+checkpoint_config = dict(interval=5, create_symlink=False)
+evaluation = dict(interval=5, metrics=['top_k_accuracy'])
 log_config = dict(interval=10, hooks=[dict(type='TextLoggerHook')])
 
 # runtime settings
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './stgcn_loc_2_corrected_dataset/'
+# work_dir = './stgcn_loc_2_corrected_dataset/'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

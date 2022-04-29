@@ -481,19 +481,33 @@ class FormatGCNInput:
 
         keypoint_3d = np.transpose(keypoint_3d,
                                    (3, 1, 2, 0))  # M T V C -> C T V M
-
+        # print('keypoint_3d.shape: ', keypoint_3d.shape)
         if keypoint_3d.shape[-1] < self.num_person:
             pad_dim = self.num_person - keypoint_3d.shape[-1]
             pad = np.zeros(
                 keypoint_3d.shape[:-1] + (pad_dim, ), dtype=keypoint_3d.dtype)
             keypoint_3d = np.concatenate((keypoint_3d, pad), axis=-1)
         elif keypoint_3d.shape[-1] > self.num_person:
-            # if 'keypoint_score' in results:
-            #     score_ranking = keypoint_confidence.sum(axis = (1,2,3))
-            #     idx_s = score_ranking.argsort()[:self.num_person]
-            #     keypoint_3d = keypoint_3d[:, :, :,idx_s]
-            # else:
-            keypoint_3d = keypoint_3d[:, :, :, :self.num_person]
+            if 'keypoint_score' in results:
+                # Score sort
+                score_ranking = keypoint_confidence.sum(axis = (1,2,3))
+                idx_s = (- score_ranking).argsort()[:self.num_person]
+                # Size sort
+#                 keypoint = keypoint_3d[:2, :, :, :]
+#                 keypoint_size = keypoint.max(axis=(2)) - keypoint.min(axis=(2))
+#                 score_ranking = keypoint_size.mean(axis=(0, 1))
+#                 assert len(score_ranking) == keypoint_3d.shape[-1]
+#                 idx_s = (- score_ranking).argsort()[:self.num_person]
+                # Centerness sort
+#                 keypoint = keypoint_3d[:2, :, :, :]
+#                 keypoint_loc = keypoint.mean(axis = (1, 2))
+#                 center = np.array([results['img_shape'][1], results['img_shape'][0]])/2
+#                 centerness = np.abs((keypoint_loc - center[:, None]).sum(axis=0))
+#                 assert len(centerness) == keypoint_3d.shape[-1]
+#                 idx_s = centerness.argsort()[:self.num_person]
+                keypoint_3d = keypoint_3d[:, :, :,idx_s]
+            else:
+                keypoint_3d = keypoint_3d[:, :, :, :self.num_person]
 
         results['keypoint'] = keypoint_3d
         results['input_shape'] = keypoint_3d.shape

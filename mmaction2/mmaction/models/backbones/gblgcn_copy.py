@@ -194,7 +194,7 @@ class GLBGCN(nn.Module):
                  edge_importance_weighting=True,
                  data_bn=True,
                  pretrained=None,
-                 reduction = 'avg',
+                 reduction='avg',
                  **kwargs):
         super().__init__()
 
@@ -204,18 +204,19 @@ class GLBGCN(nn.Module):
             self.graph.A, dtype=torch.float32, requires_grad=False)
         self.register_buffer('A', A)
         self.in_channel = in_channels
-        assert reduction in ['avg','max'], "Reduction must be either 'avg' or 'max'!"
+        assert reduction in [
+            'avg', 'max'], "Reduction must be either 'avg' or 'max'!"
         self.reduction = reduction
 
         # build networks
         spatial_kernel_size = A.size(0)
         temporal_kernel_size = 9
         kernel_size = (temporal_kernel_size, spatial_kernel_size)
-        #print(A.size())
+        # print(A.size())
         self.data_bn = nn.BatchNorm1d(in_channels *
                                       (A.size(1)-1)) if data_bn else identity
         self.data_bn_feature = nn.BatchNorm1d(32 *
-                                      (A.size(1)-1)) if data_bn else identity
+                                              (A.size(1)-1)) if data_bn else identity
 
         kwargs0 = {k: v for k, v in kwargs.items() if k != 'dropout'}
         self.st_gcn_networks = nn.ModuleList((
@@ -245,6 +246,12 @@ class GLBGCN(nn.Module):
             nn.Linear(256, 256),
         ))
 
+        self.feature_residue = nn.ModuleList((
+            nn.Linear(32, in_channels),
+            nn.Linear(32, 64),
+            nn.Linear(32, 64),
+            nn.Linear(32, 64),
+        ))
 
         # initialize parameters for edge importance weighting
         if edge_importance_weighting:
@@ -254,7 +261,6 @@ class GLBGCN(nn.Module):
             ])
         else:
             self.edge_importance = [1 for _ in self.st_gcn_networks]
-            
 
         self.pretrained = pretrained
 
@@ -286,8 +292,8 @@ class GLBGCN(nn.Module):
         Returns:
             torch.Tensor: The output of the module.
         """
-        x_pos = x[:,0:self.in_channel,:,:,:]
-        x_feature = x[:,self.in_channel:,:,:,:]
+        x_pos = x[:, 0:self.in_channel, :, :, :]
+        x_feature = x[:, self.in_channel:, :, :, :]
 
         x_feature = x_feature.float()
         n, c, t, v, m = x_feature.size()  # bs 32 30 25(17) 2
@@ -304,6 +310,8 @@ class GLBGCN(nn.Module):
             x_feature = torch.amax(x_feature, dim=3, keepdim=True)
         # bsx2 32 30 1
         # print(x_feature.size())
+        x_feature_clone = x_feature
+        x_feature_clone = x_feature_clone.permute(0, 2, 3, 1)
 
         # data normalization
         x_pos = x_pos.float()
@@ -315,16 +323,20 @@ class GLBGCN(nn.Module):
         x_pos = x_pos.permute(0, 1, 3, 4, 2).contiguous()
         x_pos = x_pos.view(n * m, c, t, v)  # bsx2 3 300 25(17)
 
-
         # forward
+        i = 0
         for gcn, importance, fc in zip(self.st_gcn_networks, self.edge_importance, self.feature_transform):
-            x_feature = x_feature.permute(0,2,3,1)
+            x_feature = x_feature.permute(0, 2, 3, 1)
             x_feature = fc(x_feature)
-            x_feature = x_feature.permute(0, 3, 1,2)
+            x_feature = x_feature.permute(0, 3, 1, 2)
+            if i < len(self.feature_residue):
+                x_feature_res = self.feature_residue[i](
+                    x_feature_clone).permute(0, 3, 1, 2)
+                x_feature += x_feature_res
+                i += 1
             x = torch.cat((x_pos, x_feature), dim=3)
             x, _ = gcn(x, self.A * importance)
-            x_pos = x[:,:,:,0:(self.A.size(1)-1)]
-            x_feature = x[:,:,:,-1].unsqueeze(3)
-
+            x_pos = x[:, :, :, 0:(self.A.size(1)-1)]
+            x_feature = x[:, :, :, -1].unsqueeze(3)
 
         return x

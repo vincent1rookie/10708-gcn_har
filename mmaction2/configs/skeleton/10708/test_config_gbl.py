@@ -1,4 +1,4 @@
-num_person=2
+num_person=5
 model = dict(
     type='SkeletonGCN',
     backbone=dict(
@@ -18,8 +18,8 @@ model = dict(
     test_cfg=None)
 
 dataset_type = 'PoseDataset'
-ann_file_train = '/home/tong/10708/skeleton_train/'
-ann_file_val = '/home/tong/10708/skeleton_val/'
+ann_file_train = '/home/tong/10708/skeleton_processed/skeleton_train_processed/'
+ann_file_val = '/home/tong/10708/skeleton_processed/skeleton_val_processed/'
 train_pipeline = [
     dict(type='PaddingWithLoop', clip_len=30),
     dict(type='PoseDecode'),
@@ -46,8 +46,8 @@ test_pipeline = [
 ]
 data = dict(
     videos_per_gpu=64,
-    workers_per_gpu=2,
-    test_dataloader=dict(videos_per_gpu=1),
+    workers_per_gpu=4,
+    test_dataloader=dict(videos_per_gpu=4),
     train=dict(
         type=dataset_type,
         ann_file=ann_file_train,
@@ -70,14 +70,14 @@ optimizer_config = dict(grad_clip=None)
 # learning policy
 lr_config = dict(policy='step', step=[10, 40, 70])
 total_epochs = 80
-checkpoint_config = dict(interval=5)
+checkpoint_config = dict(interval=5, create_symlink=False)
 evaluation = dict(interval=5, metrics=['top_k_accuracy'])
 log_config = dict(interval=10, hooks=[dict(type='TextLoggerHook')])
 
 # runtime settings
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './stgcn_global_modify_dataset/'
+# work_dir = './stgcn_global_modify_dataset/'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
