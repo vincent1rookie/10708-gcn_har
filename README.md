@@ -40,8 +40,14 @@ cd ..
 - The unzipped data should be placed at /home/ubuntu/data
 
 - You can visualized the skeleton result of each video using our code at mmaction2/demo/visualization.ipynb
+- 
+## How to download data
+```
+wget -i text_file.txt
+```
+After downloading all the data, you should uncompress them to a series of 60 folders. Each folder contains data of one class. Sample 300 videos from each folder as training data, 100 as validation and the rest as test data. 
 
-## How to obtian data
+## How to process data
 
 To use `merge_pkl.py`, you need to change the path at line 5 and line 23 according to your system
 
