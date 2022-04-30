@@ -43,12 +43,20 @@ cd ..
 
 ## How to obtian data
 
+To use `merge_pkl.py`, you need to change the path at line 5 and line 23 according to your system
+
 ```
 conda activate open-mmlab
-...
+cd [your folder]/mmaction2/tools/data/skeleton
+python ntu_pose_extraction.py
+cd [your folder]/mmaction2/configs/skeleton/10708
+python merge_pkl.py
 ```
 
 ## How to run the code
+
+You may need to change the `ann_file_train` and `ann_file_val` based on your datafile name before executing the code
+You may also need to change `gpu-ids` based on your system.
 
 ```
 cd [your folder]/mmaction2/tools
