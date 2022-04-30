@@ -33,19 +33,14 @@ pip install -v -e .  # or "python setup.py develop"
 cd ..
 ```
 
-## configuration
-
-##TODO: how to download data
-
-- The unzipped data should be placed at /home/ubuntu/data
-
-- You can visualized the skeleton result of each video using our code at mmaction2/demo/visualization.ipynb
-- 
 ## How to download data
 ```
-wget -i text_file.txt
+wget -i dataset_paths.txt
 ```
-After downloading all the data, you should uncompress them to a series of 60 folders. Each folder contains data of one class. Sample 300 videos from each folder as training data, 100 as validation and the rest as test data. 
+After downloading all the data, you should uncompress them to a series of 60 folders. Each folder contains data of one class. The unzipped data should be placed at 
+```/home/ubuntu/data/``` 
+
+Sample 300 videos from each folder as training data, 100 as validation and the rest as test data. 
 
 ## How to process data
 
